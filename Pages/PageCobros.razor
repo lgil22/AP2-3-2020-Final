@@ -1,0 +1,279 @@
+﻿@page "/Cobros"
+
+@using FinalProject.BLL
+@using FinalProject.Entidades
+@inject IToastService toastService
+
+@inject IToastService toast
+
+<EditForm Model="cobros" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <section class="form-register">
+        <div class="card">
+
+            <div class="card-header">
+                <h3>Registro de Mora</h3>
+            </div>
+
+            <div class="card-body">
+                <form>
+                    <div class="form-row align-items-center">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>ID:</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="cobros.CobroId" class="form-control col-4" />
+                                    <ValidationMessage For="(() => cobros.CobroId)"></ValidationMessage>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-primary input-group-text" @onclick="Buscar">Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Fecha*@
+                    <div class="form-group">
+                        <label>FECHA:</label>
+                        <InputDate @bind-Value="cobros.Fecha" class="form-control" />
+                        <ValidationMessage For="@(() => cobros.Fecha)" />
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label>PRESTAMO ID:</label>
+                                <select class="form-control" @bind="VentaSeleccionada" @onclick="MostrarNombreCliente">
+                                    @foreach (var item in listaVentas)
+                                    {
+                                        <option value="@item.ClienteId">@item.ClienteId</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col">
+                                <label>A NOMBRE DE:</label>
+                                <InputText class="form-control" readonly="true" @bind-Value="nombreCliente" />
+                            </div>
+
+                            <div class="col">
+                                <label>VALOR:</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="valorCobrado" class="form-control" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-info" @onclick="AgregarCobro">Agregar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive text-nowrap">
+                        <table class="table table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Mora Id</th>
+                                    <th>Prestamo Id</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                                @foreach (var item in cobros.Detalle)
+                                {
+                                    <tr>
+                                        <td>@item.Id</td>
+                                        <td>@item.CobroId</td>
+                                        <td>@item.VentaId</td>
+                                        <td>@item.Monto</td>
+                                        <td><button type="button" class="btn btn-outline-danger" @onclick="(() => EliminarCobroDetalle(item))">Remover</button></td>
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    @*Total*@
+                    <div class="form-group">
+                        <label>TOTAL:</label>
+                        <InputNumber @bind-Value="cobros.Total" class="form-control" readonly="true" />
+                        <ValidationMessage For="@(() => cobros.Total)" />
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="card-footer">
+                <div class="form-group text-center" display: inline-block>
+                    <button type="button" class="btn btn-lg btn-secondary" @onclick="Nuevo">Nuevo</button>
+                    <button type="submit" class="btn btn-lg btn-success">Guardar</button>
+                    <button type="button" class="btn btn-lg btn-danger" @onclick="Eliminar">Eliminar</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</EditForm>
+
+
+@code {
+
+    [Parameter]
+    public int CobroId { get; set; }
+
+    public int VentaSeleccionada { get; set; }
+    public decimal valorCobrado { get; set; }
+    public string nombreCliente { get; set; }
+
+    Cobros cobros = new Cobros();
+    List<Ventas> listaVentas = new List<Ventas>();
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+        if (CobroId > 0)
+        {
+            var auxCobro = CobrosBLL.Buscar(CobroId);
+            if (auxCobro != null)
+                this.cobros = auxCobro;
+            else
+                toast.ShowWarning("No encontrado.");
+        }
+
+        listaVentas = VentasBLL.GetList(p => true);
+    }
+
+    private void Buscar()
+    {
+        var encontrado = CobrosBLL.Buscar(cobros.CobroId);
+        if (encontrado != null)
+        {
+            this.cobros = encontrado;
+        }
+        else
+            toast.ShowWarning("No encontrado");
+
+    }
+
+
+    private void Nuevo()
+    {
+        this.cobros = new Cobros();
+        VentaSeleccionada = 0;
+        valorCobrado = 0;
+        nombreCliente = string.Empty;
+
+    }
+
+    private void MostrarNombreCliente()
+    {
+        string auxNombre = string.Empty;
+
+        var auxVenta = VentasBLL.Buscar(VentaSeleccionada);
+        if (auxVenta != null)
+        {
+            auxNombre = ClientesBLL.Buscar(auxVenta.ClienteId).Nombres;
+            nombreCliente = auxNombre;
+        }
+    }
+
+    private void AgregarCobro()
+    {
+        if (VentaSeleccionada == 0)
+        {
+            toast.ShowWarning("Tiene que seleccionar un Cobro Id.");
+            return;
+        }
+
+        if (valorCobrado <= 0)
+        {
+            toast.ShowWarning("El valor debe ser mayor a 0.");
+            return;
+        }
+        else
+        {
+            this.cobros.Detalle.Add(new CobrosDetalles
+            {
+                Id = 0,
+                CobroId = cobros.CobroId,
+                VentaId = VentaSeleccionada,
+                Monto = valorCobrado
+            });
+            VentaSeleccionada = 0;
+            valorCobrado = 0;
+            nombreCliente = string.Empty;
+        }
+        CalcularTotal();
+
+    }
+
+    private void CalcularTotal()
+    {
+        decimal total = 0;
+        foreach (var item in cobros.Detalle)
+        {
+            total += item.Monto;
+        }
+        cobros.Total = total;
+    }
+
+    private void EliminarCobroDetalle(CobrosDetalles detalles)
+    {
+        try
+        {
+            cobros.Detalle.Remove(detalles);
+            CalcularTotal();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
+    }
+
+
+    private void Guardar()
+    {
+        bool paso;
+        if (cobros.Detalle.Count == 0)
+        {
+            toast.ShowWarning("Tienes que agregar al menos un elemento a la lista", "Lista Vacía!");
+            return;
+        }
+        else
+        {
+            paso = CobrosBLL.Guardar(cobros);
+
+            if (paso)
+            {
+                Nuevo();
+                toast.ShowSuccess("Guardado correctamente");
+            }
+            else
+            {
+                toast.ShowError("No fue posible guardar");
+            }
+        }
+
+    }
+
+    private void Eliminar()
+    {
+        bool elimino;
+
+        elimino = CobrosBLL.Eliminar(cobros.CobroId);
+
+        if (elimino)
+        {
+            Nuevo();
+            toast.ShowSuccess("Eliminado correctamente");
+        }
+        else
+            toast.ShowError("No fue posible eliminar");
+    }
+
+}

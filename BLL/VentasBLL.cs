@@ -174,12 +174,12 @@ namespace FinalProject.BLL
 
 
             List<Ventas> lista = new List<Ventas>();
-            Contexto db = new Contexto();
+            Contexto contexto = new Contexto();
 
 
             try
             {
-                lista = db.Venta.Where(expression).ToList();
+                lista = contexto.Venta.Where(expression).ToList();
             }
             catch (Exception)
             {
@@ -188,7 +188,7 @@ namespace FinalProject.BLL
             }
             finally
             {
-                db.Dispose();
+                contexto.Dispose();
 
             }
 
