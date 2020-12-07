@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FinalProject.DAL;
+using FinalProject.BLL;
+using FinalProject.Pages;
 
 namespace FinalProject.DAL
 {
@@ -11,13 +14,12 @@ namespace FinalProject.DAL
     {
         public DbSet<Cobros> Cobro { get; set; }
         public DbSet<Ventas> Venta { get; set; }
-
         public DbSet<Clientes> Cliente { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite(@"Data source = Data\Ventas.db"); ;
+            optionsBuilder.UseSqlite(@"Data source = Data\VentasDB.db"); ;
 
         }
 
