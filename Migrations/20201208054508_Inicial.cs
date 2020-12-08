@@ -47,6 +47,23 @@ namespace FinalProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Usuario",
+                columns: table => new
+                {
+                    UsuarioId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Fecha = table.Column<DateTime>(nullable: false),
+                    Nombres = table.Column<string>(nullable: false),
+                    NombreUsuario = table.Column<string>(nullable: false),
+                    Contrasena = table.Column<string>(nullable: false),
+                    Email = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuario", x => x.UsuarioId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Venta",
                 columns: table => new
                 {
@@ -104,6 +121,11 @@ namespace FinalProject.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Usuario",
+                columns: new[] { "UsuarioId", "Contrasena", "Email", "Fecha", "NombreUsuario", "Nombres" },
+                values: new object[] { 1, "MQAyADMANAA=", "lgilbaez@gmail.com", new DateTime(2020, 12, 8, 0, 45, 8, 417, DateTimeKind.Local).AddTicks(318), "Admin", "Luis" });
+
             migrationBuilder.CreateIndex(
                 name: "IX_CobrosDetalles_CobrosId",
                 table: "CobrosDetalles",
@@ -117,6 +139,9 @@ namespace FinalProject.Migrations
 
             migrationBuilder.DropTable(
                 name: "CobrosDetalles");
+
+            migrationBuilder.DropTable(
+                name: "Usuario");
 
             migrationBuilder.DropTable(
                 name: "VentasDetalles");

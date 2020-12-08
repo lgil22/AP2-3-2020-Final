@@ -108,6 +108,47 @@ namespace FinalProject.Migrations
                     b.ToTable("CobrosDetalles");
                 });
 
+            modelBuilder.Entity("FinalProject.Entidades.Usuarios", b =>
+                {
+                    b.Property<int>("UsuarioId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Contrasena")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NombreUsuario")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombres")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UsuarioId");
+
+                    b.ToTable("Usuario");
+
+                    b.HasData(
+                        new
+                        {
+                            UsuarioId = 1,
+                            Contrasena = "MQAyADMANAA=",
+                            Email = "lgilbaez@gmail.com",
+                            Fecha = new DateTime(2020, 12, 8, 0, 45, 8, 417, DateTimeKind.Local).AddTicks(318),
+                            NombreUsuario = "Admin",
+                            Nombres = "Luis"
+                        });
+                });
+
             modelBuilder.Entity("FinalProject.Entidades.Ventas", b =>
                 {
                     b.Property<int>("VentaId")

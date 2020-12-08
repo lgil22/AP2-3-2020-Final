@@ -12,6 +12,7 @@
                 <span class="oi oi-home" aria-hidden="true"></span> Home
             </NavLink>
         </li>
+
         <li class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
                 <span class="oi oi-plus" aria-hidden="true"></span> Counter
@@ -22,21 +23,51 @@
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
             </NavLink>
         </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="Cobros">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Registro de Cobros
-            </NavLink>
-        </li>
+        <AuthorizeView>
+            <Authorized>
+                <li class="nav-item px-1">
+                    <NavLink class="nav-link" @onclick="ToggleRegistrosMenu">
+                        <span class="oi oi-plus" aria-hidden="true"></span> Registros &nbsp; <span class="oi oi-arrow-circle-bottom"></span>
+                    </NavLink>
+                    @if (Registros)
+                    {
+                <ul class="children">
+
+                    <li class="nav-item px-3">
+                        <NavLink class="nav-link" href="Cobros">
+                            <span class="oi oi-list-rich" aria-hidden="true"></span> Cobros
+                        </NavLink>
+                    </li>
+                </ul>
+
+             }
+           </li>
+                    
+                </Authorized>
+        </AuthorizeView>
     </ul>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+    private bool Registros = false;
+    private bool Consultas = false;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+    private void ToggleRegistrosMenu()
+    {
+        Registros = !Registros;
+        Consultas = false;
+    }
+
+    private void ToggleConsultasMenu()
+    {
+        Consultas = !Consultas;
+        Registros = false;
     }
 }

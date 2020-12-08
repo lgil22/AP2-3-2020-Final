@@ -16,11 +16,16 @@ namespace FinalProject.DAL
         public DbSet<Ventas> Venta { get; set; }
         public DbSet<Clientes> Cliente { get; set; }
 
+        public DbSet<Usuarios> Usuario { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite(@"Data source = Data\VentasDB.db"); ;
 
+        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Usuarios>().HasData(new Usuarios { UsuarioId = 1, Fecha = DateTime.Now, Nombres = "Luis", NombreUsuario = "Admin", Contrasena = UsuariosBLL.Encrypt("1234"), Email = "lgilbaez@gmail.com" });
         }
 
     }

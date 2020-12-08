@@ -129,17 +129,19 @@ namespace FinalProject.BLL
 
             try
             {
-                Cobros cobros = contexto.Cobro.Where(e => e.CobroId == id).Include(d => d.Detalle).FirstOrDefault();
-
-                foreach (var item in cobros.Detalle)
+                if (Existe(id))
                 {
-                    contexto.Venta.Find(item.CobroId).Balance -= item.Monto;
+                    Cobros cobros = contexto.Cobro.Where(e => e.CobroId == id).Include(d => d.Detalle).SingleOrDefault();
 
+                    foreach (var item in cobros.Detalle)
+                    {
+                        contexto.Venta.Find(item.CobroId).Balance -= item.Monto;
+
+                    }
+
+                    contexto.Cobro.Remove(cobros);
+                    paso = contexto.SaveChanges() > 0;
                 }
-
-                contexto.Cobro.Remove(cobros);
-                paso = contexto.SaveChanges() > 0;
-
             }
             catch (Exception)
 
@@ -181,6 +183,30 @@ namespace FinalProject.BLL
 
             return cobro;
         }
+
+        public static bool Existe(int id)
+        {
+            Contexto contexto = new Contexto();
+            bool encontrado = false;
+
+            try
+            {
+                encontrado = contexto.Cobro.Any(o => o.CobroId == id);
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                contexto.Dispose();
+            }
+
+            return encontrado;
+
+        }
+
 
         public static List<Cobros> GetList(Expression<Func<Cobros, bool>> cobro)
         {

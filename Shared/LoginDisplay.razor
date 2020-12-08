@@ -1,12 +1,22 @@
-﻿<AuthorizeView>
+﻿@page "/loginDisplay"
+@using System.Web;
+
+<AuthorizeView>
     <Authorized>
-        <a href="Identity/Account/Manage">Hello, @context.User.Identity.Name!</a>
-        <form method="post" action="Identity/Account/LogOut">
-            <button type="submit" class="nav-link btn btn-link">Log out</button>
-        </form>
+        <b style="color:red"> Usuario Conectado: @context.User.Identity.Name</b>
+
+        <a class="ml-md-auto btn btn-success"
+           href="/logout?returnUrl=/"
+           target="_top">Logout<span class="oi oi-account-logout"></span></a>
     </Authorized>
     <NotAuthorized>
-        <a href="Identity/Account/Register">Register</a>
-        <a href="Identity/Account/Login">Log in</a>
+        <div>
+            <h2>Sales, srl</h2>
+        </div>
     </NotAuthorized>
 </AuthorizeView>
+
+@code { private string encode(string param)
+            {
+                return HttpUtility.UrlEncode(param);
+            } }

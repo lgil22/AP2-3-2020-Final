@@ -2,27 +2,104 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IToastService toastService
+@inject IToastService toast
+@inject IJSRuntime JS
+
+@using FinalProject.BLL
+
+@using System.Web;
+
 <h1>BIENVENID@S!</h1>
 
-Welcome to your new app.
+Welcome to our app.
 
-<p>
-    @userAuthenticated
-</p>
+<AuthorizeView>
+    <Authorized>
+        <div class="card-footer">
+            <div class="card-header row justify-content-md-center">
+                <img src="/img/Principal.png" style="width:25%; height:250px" />
+            </div>
+        </div>
 
-@code{
-    string userAuthenticated;
-    protected override async Task OnInitializedAsync()
+    </Authorized>
+    <NotAuthorized>
+        <div class="row">
+            <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                <div class="card card-signin my-5">
+                    <div class="card-header text-center">
+                        <img src="/img/Principal.png" style="width:20%; height:70px" />
+                        <h3>Login</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Nombre de Usuario o Email: </label>
+                            <input type="text" class="form-control" @bind="Usuario" />
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña: </label>
+                            <input type="password" class="form-control" @bind="Clave" />
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="form-group text-center">
+
+                            <button type="button" class="btn btn-success btn-block" @onclick="Incorrecto">
+                                <span class="oi oi-check"></span> Recuperar
+
+                            </button>
+                        </div>
+                    </div>
+    
+                    <div class="card-footer">
+                        <div class="form-group text-center">
+                            <a class="ml-md-auto btn btn-success"
+                               href="/login?paramUsername=@encode(Usuario)&paramPassword=@encode(Clave)"
+                               target="_top">Login<span class="oi oi-account-login"></span></a>
+                            <a class="ml-md-auto btn btn-success"
+                               href="/RecuperarContrasena?paramUsername=@encode(Usuario)&paramPassword=@encode(Clave)"
+                               target="_top">Forgot password?<span class="oi oi-account-login"></span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{ string Usuario = "";
+    string Clave = "";
+
+    public void Incorrecto()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity.IsAuthenticated)
+
+        if (Usuario == "" && Clave == "")
         {
-            userAuthenticated = $"{ user.Identity.Name} está autenticado.";
+            toast.ShowError(Usuario, "Ingrese Datos Correctos");
+            toastService.ShowInfo("Favor Llene los campos");
         }
+
         else
+
+    if (Usuario == "Admin" && Clave == "1234")
         {
-            userAuthenticated = "El usuario NO está autenticado.";
+
+            toastService.ShowSuccess("Congratulations!");
         }
+
     }
-}  
+
+
+    private string encode(string param)
+    {
+
+        return HttpUtility.UrlEncode(param);
+    }
+
+    
+    }
+
+
+
