@@ -1,0 +1,235 @@
+﻿@page "/Clientes"
+@page "/Clientes/{ClienteId:int}"
+
+@using Entidades
+@using BLL
+@using System.Web;
+@using System.Security.Claims;
+
+@inject IToastService toast
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+
+<AuthorizeView>
+    <NotAuthorized>
+        <p class="h4 text-center">Usted no esta autorizado para acceder a esta pagina</p>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (AuthenticationStateProvider.GetAuthenticationStateAsync().Result.User.Identity.IsAuthenticated)
+{
+
+<EditForm Model="Cliente" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="card">
+        <div class="card-header">
+            <h3>Registro de Clientes</h3>
+        </div>
+        <div class="card-body">
+            <form>
+
+                @*ClienteId*@
+                <div class="form-row align-items-center">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>ClienteId</label>
+                            <div class="input-group">
+                                <InputNumber readonly="@IsActivate" @bind-Value="Cliente.ClienteId" class="form-control col-4" />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary input-group-text" @onclick="Buscar"><i class="oi oi-magnifying-glass" />Buscar</button>
+                                </div>
+                            </div>
+                            <ValidationMessage For="@(() => Cliente.ClienteId)" />
+                        </div>
+                    </div>
+                </div>
+
+                @*Nombres*@
+                <div class="form-group">
+                    <label>Nombres</label>
+                    <InputText @bind-Value="Cliente.Nombres" class="form-control" />
+                    <ValidationMessage For="@(() => Cliente.Nombres)" />
+                </div>
+
+                @*Dirección*@
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <InputText @bind-Value="Cliente.Direccion" class="form-control" />
+                    <ValidationMessage For="@(() => Cliente.Direccion)" />
+                </div>
+
+                @*Teléfono*@
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <InputText @bind-Value="Cliente.Telefono" class="form-control" />
+                    <ValidationMessage For="@(() => Cliente.Telefono)" />
+                </div>
+
+                @*Celular*@
+                <div class="form-group">
+                    <label>Celular</label>
+                    <InputText @bind-Value="Cliente.Celular" class="form-control" />
+                    <ValidationMessage For="@(() => Cliente.Celular)" />
+                </div>
+
+                @*Cédula*@
+                <div class="form-group">
+                    <label>Cédula</label>
+                    <InputText @bind-Value="Cliente.Cedula" class="form-control" />
+                    <ValidationMessage For="@(() => Cliente.Cedula)" />
+                </div>
+
+
+                @*Email*@
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="row">
+                        <div class="col">
+                            <InputText @bind-Value="Cliente.Email" class="form-control" />
+                            <ValidationMessage For="@(() => Cliente.Email)" />
+                        </div>
+
+                        @*Fecha*@
+                        <div class="form-group">
+                            <label>Fecha Nacimiento</label>
+                            <InputDate @bind-Value="Cliente.FechaNacimiento" class="form-control" />
+                            <ValidationMessage For="@(() => Cliente.FechaNacimiento)" />
+                        </div>
+
+                        @*Balance*@
+                        <div class="form-group">
+                            <label>Balance</label>
+                            <InputText @bind-Value="Cliente.Nombres" class="form-control" />
+                            <ValidationMessage For="@(() => Cliente.Balance)" />
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div class="card-footer">
+            <div class="form-group text-center" display: inline-block>
+                <button type="button" class="btn btn-lg btn-primary oi oi-file" @onclick="Nuevo"> Nuevo</button>
+                <button type="submit" class="btn btn-lg btn-success oi oi-cloud-upload"> Guardar</button>
+                <button type="button" class="btn btn-lg btn-danger oi oi-trash" @onclick="Eliminar"> Eliminar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>}
+
+@code { [Parameter]
+    public int ClienteId { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authState { get; set; }
+
+    private Clientes Cliente = new Clientes();
+    private Usuarios usuario = new Usuarios();
+    private string nombreUsuarioCreacion { get; set; } = "";
+    private string usuarioIdCreacion { get; set; } = "";
+
+    private bool IsActivate { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+        BuscarParametro();
+    }
+
+    public void Nuevo()
+    {
+        Cliente = new Clientes();
+
+        ReiniciarUsuarioCreacion();
+
+        IsActivate = false;
+    }
+
+    private async void ReiniciarUsuarioCreacion()
+    {
+        nombreUsuarioCreacion = (await authState).User.Identity.Name;
+
+        usuarioIdCreacion = (await authState).User.Claims
+            .Where(c => c.Type == ClaimTypes.NameIdentifier)
+            .Select(c => c.Value).FirstOrDefault();
+    }
+
+    private void BuscarParametro()
+    {
+        if (ClienteId > 0)
+        {
+            var encontrado = ClientesBLL.Buscar(ClienteId);
+
+            if (encontrado != null)
+            {
+                this.Cliente = encontrado;
+                IsActivate = true;
+            }
+            else
+                toast.ShowWarning("No encontrado");
+        }
+    }
+
+    public void Buscar()
+    {
+        if (Cliente.ClienteId > 0)
+        {
+            var encontrado = ClientesBLL.Buscar(Cliente.ClienteId);
+
+            if (encontrado != null)
+            {
+                this.Cliente = encontrado;
+                IsActivate = true;
+            }
+            else
+                toast.ShowWarning("No encontrado");
+        }
+    }
+
+
+    public void Guardar()
+    {
+        bool guardo;
+
+        guardo = ClientesBLL.Guardar(Cliente);
+
+        if (guardo)
+        {
+            Nuevo();
+            toast.ShowSuccess("Guardado correctamente");
+        }
+        else
+            toast.ShowError("No fue posible guardar. Talvez intento modificar un id inexistente.");
+    }
+
+    public async Task Eliminar()
+    {
+        if (await JS.ConfirmDelete("Confirmar", "¿Esta seguro que desea eliminar este Cliente?", "question"))
+        {
+            bool elimino;
+
+            List<Clientes> clientes = ClientesBLL.GetList(p => true);
+
+            foreach (var item in clientes) 
+            {
+                if (item.ClienteId == Cliente.ClienteId)
+                {
+                    toast.ShowInfo("No se puede eliminar este cliente ya que tiene un contrato");
+                    return;
+                }
+            }
+
+            elimino = ClientesBLL.Eliminar(Cliente.ClienteId);
+
+            if (elimino)
+            {
+                Nuevo();
+                toast.ShowSuccess("Eliminado correctamente");
+            }
+            else
+                toast.ShowError("No fue posible eliminar");
+        }
+    } 
+    
+    }

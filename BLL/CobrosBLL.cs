@@ -129,6 +129,7 @@ namespace FinalProject.BLL
 
             try
             {
+                var eliminar = CobrosBLL.Buscar(id);
                 if (Existe(id))
                 {
                     Cobros cobros = contexto.Cobro.Where(e => e.CobroId == id).Include(d => d.Detalle).SingleOrDefault();

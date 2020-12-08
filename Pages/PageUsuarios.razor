@@ -1,0 +1,219 @@
+﻿@page "/Usuarios"
+@page "/Usuarios/{UsuarioId:int}"
+
+@using Entidades
+@using BLL
+@using System.Web;
+@using System.Security.Claims;
+
+@inject IToastService toast
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+
+<AuthorizeView>
+    <NotAuthorized>
+        <p class="h4 text-center">Usted no esta autorizado para acceder a esta pagina</p>
+
+    </NotAuthorized>
+</AuthorizeView>
+
+@if (AuthenticationStateProvider.GetAuthenticationStateAsync().Result.User.Identity.IsAuthenticated)
+{
+
+<EditForm Model="usuario" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="card">
+        <div class="card-header">
+            <h3>Registro de Usuarios</h3>
+        </div>
+        <div class="card-body">
+            <form>
+
+                @*UsuarioId*@
+                <div class="form-row align-items-center">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>UsuarioId</label>
+                            <div class="input-group">
+                                <InputNumber readonly="@IsActivate" @bind-Value="usuario.UsuarioId" class="form-control col-4" />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-primary input-group-text" @onclick="Buscar"><i class="oi oi-magnifying-glass" />Buscar</button>
+                                </div>
+                            </div>
+                            <ValidationMessage For="@(() => usuario.UsuarioId)" />
+                        </div>
+                    </div>
+                </div>
+
+                @*Fecha*@
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <InputDate @bind-Value="usuario.Fecha" class="form-control" />
+                    <ValidationMessage For="@(() => usuario.Fecha)" />
+                </div>
+
+                @*Nombres*@
+                <div class="form-group">
+                    <label>Nombres</label>
+                    <InputText @bind-Value="usuario.Nombres" class="form-control" />
+                    <ValidationMessage For="@(() => usuario.Nombres)" />
+                </div>
+
+                @*Nombre Usuario*@
+                <div class="form-group">
+                    <label>Nombre Usuario</label>
+                    <InputText @bind-Value="usuario.NombreUsuario" class="form-control" />
+                    <ValidationMessage For="@(() => usuario.NombreUsuario)" />
+                </div>
+
+                @*Contraseña*@
+            <div class="form-group">
+
+                <label>Contraseña</label>
+                
+                <input type="password" class="form-control" @bind="usuario.Contrasena" />
+                <ValidationMessage For="@(() => usuario.Contrasena)" />
+            </div>
+
+                @*Email*@
+                <div class="form-group">
+                    <label>Email</label>
+                    <div class="row">
+                        <div class="col">
+                            <InputText @bind-Value="usuario.Email" class="form-control" />
+                            <ValidationMessage For="@(() => usuario.Email)" />
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="card-footer">
+            <div class="form-group text-center" display: inline-block>
+                <button type="button" class="btn btn-lg btn-primary oi oi-file" @onclick="Nuevo"> Nuevo</button>
+                <button type="submit" class="btn btn-lg btn-success oi oi-cloud-upload"> Guardar</button>
+                <button type="button" class="btn btn-lg btn-danger oi oi-trash" @onclick="Eliminar"> Eliminar</button>
+            </div>
+        </div>
+    </div>
+</EditForm>}
+
+@code {
+
+    [Parameter]
+    public int UsuarioId { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authState { get; set; }
+
+    private Usuarios usuario = new Usuarios();
+
+    private string nombreUsuarioCreacion { get; set; } = "";
+    private string usuarioIdCreacion { get; set; } = "";
+
+    private bool IsActivate { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+        BuscarParametro();
+    }
+
+    public void Nuevo()
+    {
+        usuario = new Usuarios();
+
+        ReiniciarUsuarioCreacion();
+
+        IsActivate = false;
+    }
+
+    private async void ReiniciarUsuarioCreacion()
+    {
+        nombreUsuarioCreacion = (await authState).User.Identity.Name;
+
+        usuarioIdCreacion = (await authState).User.Claims
+            .Where(c => c.Type == ClaimTypes.NameIdentifier)
+            .Select(c => c.Value).FirstOrDefault();
+    }
+
+    private void BuscarParametro()
+    {
+        if (UsuarioId > 0)
+        {
+            var encontrado = UsuariosBLL.Buscar(UsuarioId);
+
+            if (encontrado != null)
+            {
+                this.usuario = encontrado;
+                IsActivate = true;
+            }
+            else
+                toast.ShowWarning("No encontrado");
+        }
+    }
+
+    public void Buscar()
+    {
+        if (usuario.UsuarioId > 0)
+        {
+            var encontrado = UsuariosBLL.Buscar(usuario.UsuarioId);
+
+            if (encontrado != null)
+            {
+                this.usuario = encontrado;
+                IsActivate = true;
+            }
+            else
+                toast.ShowWarning("No encontrado");
+        }
+    }
+
+
+    public void Guardar()
+    {
+        bool guardo;
+
+        if (UsuariosBLL.ExisteUsuario(usuario.NombreUsuario, usuario.Contrasena) && usuario.UsuarioId == 0)
+        {
+            toast.ShowInfo("Usuario existente");
+            return;
+        }
+
+
+        guardo = UsuariosBLL.Guardar(usuario);
+
+        if (guardo)
+        {
+            Nuevo();
+            toast.ShowSuccess("Guardado correctamente");
+        }
+        else
+            toast.ShowError("No fue posible guardar. Talvez intento modificar un id inexistente.");
+    }
+
+    public async Task Eliminar()
+    {
+        if (await JS.ConfirmDelete("Confirmar", "¿Esta seguro que desea eliminar este usuario?", "question"))
+        {
+            bool elimino;
+
+            if (usuario.UsuarioId == Convert.ToInt32(usuarioIdCreacion))
+            {
+                toast.ShowInfo("No se puede eliminar a si mismo");
+                return;
+            }
+
+            elimino = UsuariosBLL.Eliminar(usuario.UsuarioId);
+
+            if (elimino)
+            {
+                Nuevo();
+                toast.ShowSuccess("Eliminado correctamente");
+            }
+            else
+                toast.ShowError("No fue posible eliminar");
+        }
+    }
+
+    }

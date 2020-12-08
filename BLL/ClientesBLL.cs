@@ -67,9 +67,12 @@ namespace FinalProject.BLL
 
             try
             {
-                var eliminar = contexto.Cliente.Find(id);
-                contexto.Entry(eliminar).State = EntityState.Deleted;
-                paso = contexto.SaveChanges() > 0;
+                var cliente = contexto.Cliente.Find(id);
+                if (cliente != null)
+                {
+                    contexto.Cliente.Remove(cliente);
+                    paso = contexto.SaveChanges() > 0;
+                }
             }
             catch (Exception)
             {
@@ -79,10 +82,11 @@ namespace FinalProject.BLL
             {
                 contexto.Dispose();
             }
+
             return paso;
         }
 
-        public static Clientes Buscar(int id)
+            public static Clientes Buscar(int id)
         {
             Clientes clientes = new Clientes();
             Contexto contexto = new Contexto();
