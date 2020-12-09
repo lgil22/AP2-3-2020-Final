@@ -12,11 +12,12 @@ namespace FinalProject.DAL
 {
     public class Contexto : DbContext
     {
+        public DbSet<Usuarios> Usuario { get; set; }
+        public DbSet<Clientes> Cliente { get; set; }
+        public DbSet<Articulos> Articulo { get; set; }
         public DbSet<Cobros> Cobro { get; set; }
         public DbSet<Ventas> Venta { get; set; }
-        public DbSet<Clientes> Cliente { get; set; }
-
-        public DbSet<Usuarios> Usuario { get; set; }
+       
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -10,15 +10,6 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IJSRuntime JS
 
-<AuthorizeView>
-    <NotAuthorized>
-        <p class="h4 text-center">Usted no esta autorizado para acceder a esta pagina</p>
-
-    </NotAuthorized>
-</AuthorizeView>
-
-@if (AuthenticationStateProvider.GetAuthenticationStateAsync().Result.User.Identity.IsAuthenticated)
-{
 
 <EditForm Model="usuario" OnValidSubmit="Guardar">
     <DataAnnotationsValidator />
@@ -96,7 +87,7 @@
             </div>
         </div>
     </div>
-</EditForm>}
+</EditForm>
 
 @code {
 
@@ -108,7 +99,7 @@
 
     private Usuarios usuario = new Usuarios();
 
-    private string nombreUsuarioCreacion { get; set; } = "";
+    private string UsuarioCreacion { get; set; } = "";
     private string usuarioIdCreacion { get; set; } = "";
 
     private bool IsActivate { get; set; }
@@ -116,32 +107,23 @@
     protected override void OnInitialized()
     {
         Nuevo();
-        BuscarParametro();
+        ArrojarUsuario();
     }
 
     public void Nuevo()
     {
         usuario = new Usuarios();
 
-        ReiniciarUsuarioCreacion();
+        CambiarUsuarioCreacion();
 
         IsActivate = false;
     }
 
-    private async void ReiniciarUsuarioCreacion()
+    public void Buscar()
     {
-        nombreUsuarioCreacion = (await authState).User.Identity.Name;
-
-        usuarioIdCreacion = (await authState).User.Claims
-            .Where(c => c.Type == ClaimTypes.NameIdentifier)
-            .Select(c => c.Value).FirstOrDefault();
-    }
-
-    private void BuscarParametro()
-    {
-        if (UsuarioId > 0)
+        if (usuario.UsuarioId > 0)
         {
-            var encontrado = UsuariosBLL.Buscar(UsuarioId);
+            var encontrado = UsuariosBLL.Buscar(usuario.UsuarioId);
 
             if (encontrado != null)
             {
@@ -153,11 +135,20 @@
         }
     }
 
-    public void Buscar()
+    private async void CambiarUsuarioCreacion()
     {
-        if (usuario.UsuarioId > 0)
+        UsuarioCreacion = (await authState).User.Identity.Name;
+
+        usuarioIdCreacion = (await authState).User.Claims
+            .Where(c => c.Type == ClaimTypes.NameIdentifier)
+            .Select(c => c.Value).FirstOrDefault();
+    }
+
+    private void ArrojarUsuario()
+    {
+        if (UsuarioId > 0)
         {
-            var encontrado = UsuariosBLL.Buscar(usuario.UsuarioId);
+            var encontrado = UsuariosBLL.Buscar(UsuarioId);
 
             if (encontrado != null)
             {

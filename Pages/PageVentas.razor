@@ -1,0 +1,273 @@
+﻿@page "/Ventas"
+
+@using FinalProject.BLL
+@using FinalProject.Entidades
+@using FinalProject.DAL
+
+@inject IToastService toast
+
+<EditForm Model="ventas" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+
+    <section class="form-register">
+        <div class="card">
+
+            <div class="card-header">
+                <h3>Registro de Ventas</h3>
+            </div>
+
+            <div class="card-body">
+                <form>
+                    <div class="form-row align-items-center">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>ID:</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="ventas.VentaId" class="form-control col-4" />
+                                    <ValidationMessage For="(() => ventas.VentaId)"></ValidationMessage>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-primary input-group-text" @onclick="Buscar">Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Fecha*@
+                    <div class="form-group">
+                        <label>FECHA:</label>
+                        <InputDate @bind-Value="ventas.Fecha" class="form-control" />
+                        <ValidationMessage For="@(() => ventas.Fecha)" />
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-row">
+                            <div class="col">
+                                <label>COBRO ID:</label>
+                                <select class="form-control" @bind="VentaSeleccionada" @onclick="MostrarNombreCliente">
+                                    @foreach (var item in listaVentas)
+                                    {
+                    <option value="@item.ClienteId">@item.ClienteId</option>}
+                                </select>
+                            </div>
+
+                            <div class="col">
+                                <label>A NOMBRE DE:</label>
+                                <InputText class="form-control" readonly="true" @bind-Value="nombreCliente" />
+                            </div>
+
+                            <div class="col">
+                                <label>VALOR:</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="valorCobrado" class="form-control" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-info" @onclick="AgregarCobro">Agregar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive text-nowrap">
+                        <table class="table table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Venta Id</th>
+                                    <th>Venta Id</th>
+                                    <th>Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                                @foreach (var item in ventas.Detalles)
+                                {
+                <tr>
+                    <td>@item.VentaId</td>
+                    <td>@item.ArticuloId</td>
+                    <td>@item.Cantidad</td>
+                    <td>@item.Precio</td>
+                    <td><button type="button" class="btn btn-outline-danger" @onclick="(() => EliminarVentaDetalle(item))">Remover</button></td>
+                </tr>}
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    @*Total*@
+                    <div class="form-group">
+                        <label>TOTAL A Pagar:</label>
+                        <InputNumber @bind-Value="ventas.Balance" class="form-control" readonly="true" />
+                        <ValidationMessage For="@(() => ventas.Balance)" />
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="card-footer">
+                <div class="form-group text-center" display: inline-block>
+                    <button type="button" class="btn btn-lg btn-secondary" @onclick="Nuevo">Nuevo</button>
+                    <button type="submit" class="btn btn-lg btn-success">Guardar</button>
+                    <button type="button" class="btn btn-lg btn-danger" @onclick="Eliminar">Eliminar</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</EditForm>
+
+
+@code { [Parameter]
+            public int VentaId { get; set; }
+
+            public int VentaSeleccionada { get; set; }
+            public decimal valorCobrado { get; set; }
+            public string nombreCliente { get; set; }
+
+           Ventas ventas = new Ventas();
+            List<Ventas> listaVentas = new List<Ventas>();
+
+            protected override void OnInitialized()
+            {
+                Nuevo();
+                if (VentaId > 0)
+                {
+                    var auxVenta = VentasBLL.Buscar(VentaId);
+                    if (auxVenta != null)
+                        this.ventas = auxVenta;
+                    else
+                        toast.ShowWarning("No encontrado.");
+                }
+
+                listaVentas = VentasBLL.GetList(p => true);
+            }
+
+            private void Buscar()
+            {
+                var encontrado = VentasBLL.Buscar(ventas.VentaId);
+                if (encontrado != null)
+                {
+                    this.ventas = encontrado;
+                }
+                else
+                    toast.ShowWarning("No encontrado");
+
+            }
+
+
+            private void Nuevo()
+            {
+                this.ventas = new Ventas();
+                VentaSeleccionada = 0;
+                valorCobrado = 0;
+                nombreCliente = string.Empty;
+
+            }
+
+            private void MostrarNombreCliente()
+            {
+                string auxNombre = string.Empty;
+
+                var auxVenta = VentasBLL.Buscar(VentaSeleccionada);
+                if (auxVenta != null)
+                {
+                    auxNombre = ClientesBLL.Buscar(auxVenta.ClienteId).Nombres;
+                    nombreCliente = auxNombre;
+                }
+            }
+
+            private void AgregarCobro()
+            {
+                if (VentaSeleccionada == 0)
+                {
+                    toast.ShowWarning("Tiene que seleccionar un Cobro Id.");
+                    return;
+                }
+
+                if (valorCobrado <= 0)
+                {
+                    toast.ShowWarning("El valor debe ser mayor a 0.");
+                    return;
+                }
+                else
+                {
+                    this.ventas.Detalles.Add(new VentasDetalles
+                    {
+                        VentaId = 0,
+                        ArticuloId = 0,
+                        Cantidad = 0,
+                        Precio = 0
+                    });
+                    VentaSeleccionada = 0;
+                    valorCobrado = 0;
+                    nombreCliente = string.Empty;
+                }
+                CalcularTotal();
+
+            }
+
+            private void CalcularTotal()
+            {
+                decimal total = 0;
+                foreach (var item in ventas.Detalles)
+                {
+                    total += item.Precio;
+                }
+                ventas.Balance = total;
+            }
+
+            private void EliminarVentaDetalle(VentasDetalles detalles)
+            {
+                try
+                {
+                    ventas.Detalles.Remove(detalles);
+                    CalcularTotal();
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            }
+
+
+            private void Guardar()
+            {
+                bool paso;
+                if (ventas.Detalles.Count == 0)
+                {
+                    toast.ShowWarning("Tienes que agregar al menos un elemento a la lista", "Lista Vacía!");
+                    return;
+                }
+                else
+                {
+                    paso = VentasBLL.Guardar(ventas);
+
+                    if (paso)
+                    {
+                        Nuevo();
+                        toast.ShowSuccess("Guardado correctamente");
+                    }
+                    else
+                    {
+                        toast.ShowError("No fue posible guardar");
+                    }
+                }
+
+            }
+
+            private void Eliminar()
+            {
+                bool elimino;
+
+                elimino = CobrosBLL.Eliminar(ventas.VentaId);
+
+                if (elimino)
+                {
+                    Nuevo();
+                    toast.ShowSuccess("Eliminado correctamente");
+                }
+                else
+                    toast.ShowError("No fue posible eliminar");
+            } }

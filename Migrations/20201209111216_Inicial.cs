@@ -8,6 +8,24 @@ namespace FinalProject.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Articulo",
+                columns: table => new
+                {
+                    ArticulosId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UsuarioId = table.Column<int>(nullable: false),
+                    Descripcion = table.Column<string>(nullable: true),
+                    CategoriaId = table.Column<int>(nullable: false),
+                    Existencia = table.Column<int>(nullable: false),
+                    Costo = table.Column<decimal>(nullable: false),
+                    Precio = table.Column<decimal>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Articulo", x => x.ArticulosId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Cliente",
                 columns: table => new
                 {
@@ -124,7 +142,7 @@ namespace FinalProject.Migrations
             migrationBuilder.InsertData(
                 table: "Usuario",
                 columns: new[] { "UsuarioId", "Contrasena", "Email", "Fecha", "NombreUsuario", "Nombres" },
-                values: new object[] { 1, "MQAyADMANAA=", "lgilbaez@gmail.com", new DateTime(2020, 12, 8, 0, 45, 8, 417, DateTimeKind.Local).AddTicks(318), "Admin", "Luis" });
+                values: new object[] { 1, "MQAyADMANAA=", "lgilbaez@gmail.com", new DateTime(2020, 12, 9, 7, 12, 15, 902, DateTimeKind.Local).AddTicks(9125), "Admin", "Luis" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_CobrosDetalles_CobrosId",
@@ -134,6 +152,9 @@ namespace FinalProject.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Articulo");
+
             migrationBuilder.DropTable(
                 name: "Cliente");
 

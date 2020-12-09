@@ -1,0 +1,167 @@
+﻿@page "/Articulos"
+@page "/Articulos/{ArticulosId:int}"
+
+@using Entidades
+@using BLL
+@using System.Web;
+@using System.Security.Claims;
+
+@inject IToastService toast
+@inject IJSRuntime JS
+
+
+    <EditForm Model="articulos" OnValidSubmit="Guardar">
+        <DataAnnotationsValidator />
+        <div class="card">
+            <div class="card-header">
+                <h3>Registro de Articulos</h3>
+            </div>
+
+            <div class="card-body">
+                <form>
+
+                    @*ArticuloId*@
+                    <div class="form-row align-items-center">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Articulo Id</label>
+                                <div class="input-group">
+                                    <InputNumber readonly="@Activacion" @bind-Value="articulos.ArticulosId" class="form-control col-4" />
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-primary input-group-text" @onclick="Buscar"><i class="oi oi-magnifying-glass" /> Buscar</button>
+                                    </div>
+                                </div>
+                                <ValidationMessage For="@(() => articulos.ArticulosId)" />
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Descripcion*@
+                    <div class="form-group">
+                        <label>DESCRIPCION:</label>
+                        <InputText @bind-Value="articulos.Descripcion" class="form-control" />
+                        <ValidationMessage For="@(() => articulos.Descripcion)" placeholder="Descripcion" />
+                    </div>
+
+                    @*Existencia*@
+                    <div class="form-group">
+                        <label>Existencia:</label>
+                        <InputNumber @bind-Value="articulos.Existencia" class="form-control" />
+                        <ValidationMessage For="@(() => articulos.Existencia)" />
+                    </div>
+
+                    @*Precio*@
+                    <div class="form-group">
+                        <label>Costo</label>
+                        <InputNumber @bind-Value="articulos.Precio" class="form-control" @onfocusout="CalcularTotal" />
+                        <ValidationMessage For="@(() => articulos.Precio)" />
+                    </div>
+
+                    @*Costo*@
+                    <div class="form-group">
+                        <label>Cantidad</label>
+                        <InputNumber @bind-Value="articulos.Costo" class="form-control" @onfocusout="CalcularTotal" />
+                        <ValidationMessage For="@(() => articulos.Costo)" />
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer">
+                <div class="form-group text-center" display: inline-block>
+                    <button type="button" class="btn btn-lg btn-primary oi oi-file" @onclick="Nuevo"> Nuevo</button>
+                    <button type="submit" class="btn btn-lg btn-success oi oi-cloud-upload"> Guardar</button>
+                    <button type="button" class="btn btn-lg btn-danger oi oi-trash" @onclick="Eliminar"> Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </EditForm>
+
+
+@code {
+        [Parameter]
+        public int ArticulosId { get; set; }
+
+
+    //private List<Suplidores> ListaSuplidores = new List<Suplidores>();
+    //private List<Cacaos> ListaCacaos = new List<Cacaos>();
+
+    private bool Activacion { get; set; }
+
+    private Articulos articulos = new Articulos();
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+
+    }
+
+    public void Nuevo()
+    {
+        articulos = new Articulos();
+        Activacion = false;
+    }
+
+    public void Buscar()
+    {
+        if (articulos.ArticulosId > 0)
+        {
+            var encontrado = ArticulosBLL.Buscar(articulos.ArticulosId);
+
+            if (encontrado != null)
+            {
+                this.articulos = encontrado;     
+                Activacion = true;
+            }
+            else
+                toast.ShowWarning("No encontrado");
+        }
+    }
+
+
+
+
+    private void CalcularTotal()
+    {
+        articulos.Existencia = Convert.ToInt32(articulos.Precio * articulos.Costo);
+    }
+
+    public void Guardar()
+    {
+        bool guardo = false;
+
+        if (articulos.ArticulosId <= 0)
+        {
+            toast.ShowInfo("Debe de seleccionar un suplidor");
+            return;
+        }
+
+        else
+            toast.ShowInfo("La existencia del cacao resulto menor o igual a cero");
+
+        if (guardo)
+        {
+            Nuevo();
+            toast.ShowSuccess("Guardado correctamente");
+        }
+        else
+            toast.ShowError("No fue posible guardar. Talvez intento modificar un Articulo inexistente.");
+    }
+
+    public async Task Eliminar()
+    {
+        if (await JS.ConfirmDelete("Confirmar", "¿Esta seguro que desea eliminar esta Entrada?", "question"))
+        {
+            bool elimino;
+
+            elimino = ArticulosBLL.Eliminar(articulos.ArticulosId);
+
+            if (elimino)
+            {
+                Nuevo();
+                toast.ShowSuccess("Eliminado correctamente");
+            }
+            else
+                toast.ShowError("No fue posible eliminar");
+        }
+    }
+}

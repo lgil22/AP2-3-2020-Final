@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinalProject.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20201208054508_Inicial")]
+    [Migration("20201209111216_Inicial")]
     partial class Inicial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -17,6 +17,35 @@ namespace FinalProject.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.1.10");
+
+            modelBuilder.Entity("FinalProject.Entidades.Articulos", b =>
+                {
+                    b.Property<int>("ArticulosId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CategoriaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Costo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Existencia")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ArticulosId");
+
+                    b.ToTable("Articulo");
+                });
 
             modelBuilder.Entity("FinalProject.Entidades.Clientes", b =>
                 {
@@ -145,7 +174,7 @@ namespace FinalProject.Migrations
                             UsuarioId = 1,
                             Contrasena = "MQAyADMANAA=",
                             Email = "lgilbaez@gmail.com",
-                            Fecha = new DateTime(2020, 12, 8, 0, 45, 8, 417, DateTimeKind.Local).AddTicks(318),
+                            Fecha = new DateTime(2020, 12, 9, 7, 12, 15, 902, DateTimeKind.Local).AddTicks(9125),
                             NombreUsuario = "Admin",
                             Nombres = "Luis"
                         });
